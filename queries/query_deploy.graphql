@@ -1,0 +1,18 @@
+query DeployEvents {
+    eventByTopic(
+        t1: "AAAADwAAAAZkZXBsb3kAAA=="
+    ) {
+        edges {
+            node {
+                contractId
+                data
+                ledger
+                ledgerTimestamp
+                topic1
+                topic2
+                topic3
+                topic4
+            }
+        }
+    }   
+}
