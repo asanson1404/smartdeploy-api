@@ -1,3 +1,4 @@
+#sorobanClient.xdr.ScVal.scvSymbol("deploy").toXDR("base64") => AAAADwAAAAZkZXBsb3kAAA==
 query DeployEvents {
     eventByTopic(
         t1: "AAAADwAAAAZkZXBsb3kAAA=="
