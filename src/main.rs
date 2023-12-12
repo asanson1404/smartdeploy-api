@@ -96,10 +96,10 @@ async fn get_deploy_event(State(state): State<Arc<AppState>>) -> Result<deploy_e
             .send()
             .await?;
 
-    println!("Response Status: {}", res.status());
+    tracing::debug!("Response Status: {}", res.status());
 
     if res.status().is_success() {
-        println!("Success");
+        tracing::debug!("Success");
         // Deserialize the response body as Json
         let response_body: GraphQLResponse<deploy_events::ResponseData> = res.json().await?;
         let response_data: deploy_events::ResponseData = response_body.data.unwrap();
