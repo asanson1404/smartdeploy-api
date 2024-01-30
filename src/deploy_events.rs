@@ -76,7 +76,8 @@ pub async fn get_deploy_events(State(state): State<Arc<AppState>>) -> Result<Dep
 
             // Decode the XDR and fill the Vec
             let bytes = xdr.as_bytes();
-            let decoded_val = ScVal::from_xdr_base64(bytes, Limits::none()).unwrap();
+            let decoded_val = ScVal::from_xdr_base64(bytes, Limits::none())
+                .map_err(MyError::FromXdrError)?;
             tracing::debug!("Decoded Data is : {:#?}", decoded_val);
             decoded_data_events.push(decoded_val);
 
