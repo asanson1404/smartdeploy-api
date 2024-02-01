@@ -1,7 +1,7 @@
-#sorobanClient.xdr.ScVal.scvSymbol("deploy").toXDR("base64") => AAAADwAAAAZkZXBsb3kAAA==
+#sorobanClient.xdr.ScVal.scvSymbol("Deploy").toXDR("base64") => AAAADwAAAAZEZXBsb3kAAA==
 query DeployEvents {
     eventByTopic(
-        t1: "AAAADwAAAAZkZXBsb3kAAA=="
+        t1: "AAAADwAAAAZEZXBsb3kAAA=="
     ) {
         edges {
             node {
