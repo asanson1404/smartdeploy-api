@@ -5,8 +5,10 @@ use axum::{
 use anyhow::anyhow;
 use shuttle_secrets::SecretStore;
 use std::sync::Arc;
+use publish_events::get_publish_events;
 use deploy_events::get_deploy_events;
 
+mod publish_events;
 mod deploy_events;
 mod error;
 
@@ -36,7 +38,10 @@ async fn main(
     });
 
     // Create a route to query deploy events
-    let router = Router::new().route("/get_deploy", get(get_deploy_events)).with_state(state);
+    let router = Router::new()
+        .route("/get_publish", get(get_publish_events))
+        .route("/get_deploy", get(get_deploy_events))
+        .with_state(state);
 
     Ok(router.into())
 }

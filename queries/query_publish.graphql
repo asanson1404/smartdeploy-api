@@ -1,0 +1,19 @@
+#sorobanClient.xdr.ScVal.scvSymbol("Publish").toXDR("base64") => AAAADwAAAAdQdWJsaXNoAA==
+query PublishEvents {
+    eventByTopic(
+        t1: "AAAADwAAAAdQdWJsaXNoAA=="
+    ) {
+        edges {
+            node {
+                contractId
+                data
+                ledger
+                ledgerTimestamp
+                topic1
+                topic2
+                topic3
+                topic4
+            }
+        }
+    }   
+}
