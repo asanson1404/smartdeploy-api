@@ -9,7 +9,9 @@ pub enum MyError {
     EmptyEventEdge,
     EmptyEventNode,
     EmptyEventXdrData,
+    ScAddressConversionFailed(soroban_sdk::Address, soroban_sdk::ConversionError),
     FromXdrError(stellar_xdr::curr::Error),
+    ToXdrError(stellar_xdr::curr::Error),
 }
 
 // Convert reqwest::Error towards MyError::ReqwestError
@@ -31,7 +33,9 @@ impl IntoResponse for MyError {
             MyError::EmptyEventEdge => "Empty Event Edge: Mercury returns an empty event".to_string(),
             MyError::EmptyEventNode => "Empty Event Node: Mercury returns an empty event".to_string(),
             MyError::EmptyEventXdrData => "Empty Event Data: No XDR data for that event".to_string(),
+            MyError::ScAddressConversionFailed(address, conversion_error) => format!("Failed to convert Address {:#?} into ScAddress: {:#?}", address, conversion_error),
             MyError::FromXdrError(conversion_error) => format!("Failed to convert xdr value: {}", conversion_error),
+            MyError::ToXdrError(conversion_error) => format!("Failed to create xdr value : {}", conversion_error),
         };
 
         body.into_response()
