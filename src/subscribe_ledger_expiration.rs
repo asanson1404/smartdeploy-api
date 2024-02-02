@@ -13,7 +13,6 @@ use stellar_xdr::{
     Limits,
     Hash,
 };
-use soroban_sdk::{Address, Env};
 use sha2::{Sha256, Digest};
 use serde_json::json;
 
@@ -24,28 +23,26 @@ pub async fn subscribe_contract_expiration(
 ) -> Result<(), MyError> {
     
     // Build the LedgerKey knowing the contract id
-    let soroban_string = soroban_sdk::String::from_str(&Env::default(), id.as_str());
-    let address = Address::from_string(&soroban_string); // CAN PANICK!!!!
-    let sc_address = ScAddress::try_from(address.clone())
-        .map_err(|e| MyError::ScAddressConversionFailed(address, e))?;
+    let contract = stellar_strkey::Contract::from_string(id.as_str())
+        .map_err(|e| MyError::StringToContractConversionFailed(id, e))?;
     
     let ledger_key = LedgerKey::ContractData(
         LedgerKeyContractData {
-            contract: sc_address,
+            contract: ScAddress::Contract(Hash(contract.0)),
             key: ScVal::LedgerKeyContractInstance,
             durability: ContractDataDurability::Persistent,
         }
     );
-    tracing::debug!("LedgerKey is : {:#?}", ledger_key);
 
+    // Build the LedgerKey XDR (/!\ not base64)
     let ledger_key_xdr = ledger_key
-        .to_xdr_base64(Limits::none())
+        .to_xdr(Limits::none())
         .map_err(MyError::ToXdrError)?;
-    tracing::debug!("LedgerKey XDR is : {:#?}", ledger_key_xdr);
 
+    // Hash the above XDR
     let hashed_ledger_key_xdr = Hash(Sha256::digest(ledger_key_xdr).into());
-    tracing::debug!("LedgerKey Hashed is : {:#?}", hashed_ledger_key_xdr);
     
+    // Build the XDR of the LedgerKey Hashed
     let hash_xdr = hashed_ledger_key_xdr
         .to_xdr_base64(Limits::none())
         .map_err(MyError::ToXdrError)?;
