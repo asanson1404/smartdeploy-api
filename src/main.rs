@@ -2,12 +2,14 @@ use axum::routing::{Router, get};
 use anyhow::anyhow;
 use shuttle_secrets::SecretStore;
 use std::sync::Arc;
-use publish_events::get_publish_events;
-use deploy_events::get_deploy_events;
+use events::get_publish::get_publish_events;
+use events::get_deploy::get_deploy_events;
 use subscribe_ledger_expiration::subscribe_contract_expiration;
 
-mod publish_events;
-mod deploy_events;
+mod events {
+    pub mod get_deploy;
+    pub mod get_publish;
+}
 mod subscribe_ledger_expiration;
 mod error;
 

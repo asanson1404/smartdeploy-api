@@ -1,0 +1,7 @@
+query QueryEvents($t1: String!) {
+    eventByTopic(t1: $t1) {
+        nodes {
+          data
+        }
+    }   
+}

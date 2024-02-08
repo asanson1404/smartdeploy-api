@@ -1,0 +1,30 @@
+type Query {
+    eventByTopic: Nodes
+}
+
+type Nodes {
+    nodes: [EventObject]
+}
+
+type EventObject {
+    contractId: String
+    data: String
+    topic1: String
+    topic2: String
+    topic3: String
+    topic4: String
+    txInfoByTx: TxInfoObject
+}
+
+type TxInfoObject {
+    ledgerByLedger: LedgerObject
+    memo: String
+    txHash: String
+    opCount: Int
+    fee: String
+}
+
+type LedgerObject {
+    closeTime: Int
+    sequence: Int
+}
