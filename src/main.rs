@@ -1,7 +1,7 @@
 use axum::routing::{Router, get};
 use anyhow::anyhow;
 use shuttle_secrets::SecretStore;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use events::get_publish::get_publish_events;
 use events::get_deploy::get_deploy_events;
 use subscribe_ledger_expiration::subscribe_contract_expiration;
@@ -11,13 +11,16 @@ mod events {
     pub mod get_publish;
 }
 mod subscribe_ledger_expiration;
+mod update_token;
 mod error;
 
 #[derive(Clone)]
 struct AppState {
-    my_jwt_token: String,
+    mercury_jwt_token: Arc<Mutex<String>>,
     mercury_backend_endpoint: String,
     mercury_graphql_endpoint: String,
+    mercury_id: String,
+    mercury_pwd: String,
 }
 
 #[shuttle_runtime::main]
@@ -26,22 +29,29 @@ async fn main(
 ) -> shuttle_axum::ShuttleAxum {
 
     // Retrieve the secret variables
-    let Some(my_jwt_token) = secret_store.get("MY_JWT_TOKEN") else {
-        return Err(anyhow!("MY_JWT_TOKEN not set in Secrets.toml file").into());
-    };
     let Some(mercury_backend_endpoint) = secret_store.get("MERCURY_BACKEND_ENDPOINT") else {
         return Err(anyhow!("MERCURY_BACKEND_ENDPOINT not set in Secrets.toml file").into());
     };
     let Some(mercury_graphql_endpoint) = secret_store.get("MERCURY_GRAPHQL_ENDPOINT") else {
         return Err(anyhow!("MERCURY_GRAPHQL_ENDPOINT not set in Secrets.toml file").into());
     };
+    let Some(mercury_id) = secret_store.get("MERCURY_EMAIL") else {
+        return Err(anyhow!("MERCURY_EMAIL not set in Secrets.toml file").into());
+    };
+    let Some(mercury_pwd) = secret_store.get("MERCURY_PASSWORD") else {
+        return Err(anyhow!("MERCURY_PASSWORD not set in Secrets.toml file").into());
+    };
 
     // Create the AppState
     let state = Arc::new(AppState {
-        my_jwt_token,
+        mercury_jwt_token: Arc::new(Mutex::new("".to_string())),
         mercury_backend_endpoint,
         mercury_graphql_endpoint,
+        mercury_id,
+        mercury_pwd,
     });
+
+    update_token::renew_jwt_cron_job(state.clone()).await;
 
     // Create the routes of the API
     let router = Router::new()

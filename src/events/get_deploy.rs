@@ -36,25 +36,30 @@ impl IntoResponse for DeployDataEvents {
 // Axum Handler to query and decode the deploy events
 pub async fn get_deploy_events(State(state): State<Arc<AppState>>) -> Result<DeployDataEvents, MyError> {
 
-    // Generate the event topic xdr
-    let topic = ScVal::String(ScString(StringM::from_str("Deploy").unwrap())).to_xdr_base64(Limits::none()).unwrap();
+    let res;
 
-    // GraphQL request variables
-    let variables = query_events::Variables {
-        t1: topic,
-    };
+    /* Scope to drop the mutex right after the query */
+    {
+        // Generate the event topic xdr
+        let topic = ScVal::String(ScString(StringM::from_str("Deploy").unwrap())).to_xdr_base64(Limits::none()).unwrap();
 
-    // Build the GraphQL request body
-    let request_body = QueryEvents::build_query(variables);
+        // GraphQL request variables
+        let variables = query_events::Variables {
+            t1: topic,
+        };
 
-    // Post the GraphQL request
-    let client = reqwest::Client::new();
-    let res = client
-            .post(format!("{}/graphql", state.mercury_graphql_endpoint.clone()))
-            .bearer_auth(state.my_jwt_token.clone())
-            .json(&request_body)
-            .send()
-            .await?;
+        // Build the GraphQL request body
+        let request_body = QueryEvents::build_query(variables);
+        
+        // Post the GraphQL request
+        let client = reqwest::Client::new();
+        res = client
+                .post(format!("{}/graphql", state.mercury_graphql_endpoint))
+                .bearer_auth(state.mercury_jwt_token.lock().unwrap())
+                .json(&request_body)
+                .send()
+                .await?;
+    }
 
     if res.status().is_success() {
 

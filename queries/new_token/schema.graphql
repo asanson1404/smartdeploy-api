@@ -1,0 +1,8 @@
+type Mutation {
+    authenticate: Response
+}
+
+type Response  {
+    clientMutationId: Int
+    jwtToken: String
+}

@@ -57,7 +57,7 @@ pub async fn subscribe_contract_expiration(
     tokio::task::spawn_blocking(move || {
         let client = reqwest::blocking::Client::new();
         let res = client.post(format!("{}/expiration", state.mercury_backend_endpoint.clone()))
-            .bearer_auth(state.my_jwt_token.clone())
+            .bearer_auth(state.mercury_jwt_token.lock().unwrap())
             .json(&request_body)
             .send().unwrap();
         tracing::debug!("Mercury subscription response: {:#?}", res);
