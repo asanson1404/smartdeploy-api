@@ -4,15 +4,18 @@ use shuttle_secrets::SecretStore;
 use std::sync::{Arc, Mutex};
 use events::get_publish::get_publish_events;
 use events::get_deploy::get_deploy_events;
-use subscribe_ledger_expiration::subscribe_contract_expiration;
+use expiration::subscribe_ledger_expiration::subscribe_contract_expiration;
 
 mod events {
     pub mod get_deploy;
     pub mod get_publish;
 }
-mod subscribe_ledger_expiration;
-mod update_token;
+mod expiration {
+    mod extend_ttl;
+    pub mod subscribe_ledger_expiration;
+}
 mod error;
+mod update_token;
 
 #[derive(Clone)]
 struct AppState {
@@ -21,6 +24,7 @@ struct AppState {
     mercury_graphql_endpoint: String,
     mercury_id: String,
     mercury_pwd: String,
+    source_account: String,
 }
 
 #[shuttle_runtime::main]
@@ -41,6 +45,9 @@ async fn main(
     let Some(mercury_pwd) = secret_store.get("MERCURY_PASSWORD") else {
         return Err(anyhow!("MERCURY_PASSWORD not set in Secrets.toml file").into());
     };
+    let Some(source_account) = secret_store.get("SOURCE_ACCOUNT") else {
+        return Err(anyhow!("SOURCE_ACCOUNT not set in Secrets.toml file").into());
+    };
 
     // Create the AppState
     let state = Arc::new(AppState {
@@ -49,6 +56,7 @@ async fn main(
         mercury_graphql_endpoint,
         mercury_id,
         mercury_pwd,
+        source_account,
     });
 
     update_token::renew_jwt_cron_job(state.clone()).await;

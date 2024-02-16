@@ -1,5 +1,6 @@
 use axum::response::{IntoResponse, Response};
 
+//#[derive(thiserror::Error, Debug)]
 pub enum MyError {
     ReqwestError(reqwest::Error),
     BadResponseStatus,
@@ -9,9 +10,17 @@ pub enum MyError {
     StringToContractConversionFailed(String, stellar_strkey::DecodeError),
     FromXdrError(stellar_xdr::curr::Error),
     ToXdrError(stellar_xdr::curr::Error),
+    ExtendError(soroban_cli::commands::contract::extend::Error),
 }
 
-// Convert reqwest::Error towards Error::ReqwestError
+// Convert soroban_cli::commands::contract::extend::Error towards MyError::ExtendError
+impl From<soroban_cli::commands::contract::extend::Error> for MyError {
+    fn from(error: soroban_cli::commands::contract::extend::Error) -> Self {
+        MyError::ExtendError(error)
+    }
+}
+
+// Convert reqwest::Error towards MyError::ReqwestError
 impl From<reqwest::Error> for MyError {
     fn from(error: reqwest::Error) -> Self {
         MyError::ReqwestError(error)
@@ -28,8 +37,9 @@ impl IntoResponse for MyError {
             MyError::EmptyEventByTopic => "Empty event_by_topic: Mercury database returns an empty field event_by_topic".to_string(),
             MyError::EmptyNodes => "Empty Nodes: No such events indexed".to_string(),
             MyError::StringToContractConversionFailed(address, decode_error) => format!("Failed to convert String {:#?} into Contract: {:#?}", address, decode_error),
-            MyError::FromXdrError(conversion_error) => format!("Failed to decode xdr value: {}", conversion_error),
-            MyError::ToXdrError(conversion_error) => format!("Failed to encode xdr value : {}", conversion_error),
+            MyError::FromXdrError(conversion_error) => format!("Failed to convert xdr value: {}", conversion_error),
+            MyError::ToXdrError(conversion_error) => format!("Failed to create xdr value : {}", conversion_error),
+            MyError::ExtendError(extend_error) => format!("Failed to extend contract: {}", extend_error),
         };
 
         body.into_response()
