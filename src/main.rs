@@ -1,6 +1,8 @@
 use axum::routing::{Router, get};
 use anyhow::anyhow;
 use shuttle_secrets::SecretStore;
+use tower_http::cors::CorsLayer;
+use http::{Method, HeaderValue};
 use std::sync::{Arc, Mutex};
 use events::get_publish::get_publish_events;
 use events::get_deploy::get_deploy_events;
@@ -59,13 +61,17 @@ async fn main(
         source_account,
     });
 
+    let cors = CorsLayer::new()
+        .allow_methods([Method::GET])
+        .allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap());
+
     update_token::renew_jwt_cron_job(state.clone()).await;
 
     // Create the routes of the API
     let router = Router::new()
-        .route("/get_publish", get(get_publish_events))
-        .route("/get_deploy", get(get_deploy_events))
-        .route("/subscribe_contract_expiration/:id", get(subscribe_contract_expiration))
+        .route("/get_publish", get(get_publish_events)).layer(cors.clone())
+        .route("/get_deploy", get(get_deploy_events)).layer(cors.clone())
+        .route("/subscribe_contract_expiration/:id", get(subscribe_contract_expiration)).layer(cors)
         .with_state(state);
 
     Ok(router.into())
