@@ -15,6 +15,7 @@ mod events {
 mod expiration {
     mod extend_ttl;
     pub mod subscribe_ledger_expiration;
+    pub mod query_ledger_expiration;
 }
 mod error;
 mod update_token;
@@ -71,7 +72,8 @@ async fn main(
     let router = Router::new()
         .route("/get_publish", get(get_publish_events)).layer(cors.clone())
         .route("/get_deploy", get(get_deploy_events)).layer(cors.clone())
-        .route("/subscribe_contract_expiration/:id", get(subscribe_contract_expiration)).layer(cors)
+        .route("/subscribe_contract_expiration/:id", get(subscribe_contract_expiration)).layer(cors.clone())
+        .route("/query_ledger_expiration/:encoded_hash_xdr", get(expiration::query_ledger_expiration::contract_instance_expiration)).layer(cors)
         .with_state(state);
 
     Ok(router.into())
