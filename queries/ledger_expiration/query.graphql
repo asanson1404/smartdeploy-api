@@ -1,0 +1,7 @@
+query LedgerInstanceExpiration($hashXdr: String!) {
+    entryExpirationByHashXdr(hashXdr: $hashXdr) {
+        id
+        hashXdr
+        expiration
+    }
+}

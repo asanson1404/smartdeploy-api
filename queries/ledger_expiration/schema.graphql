@@ -1,0 +1,9 @@
+type Query {
+    entryExpirationByHashXdr: Response
+}
+
+type Response {
+    id: String
+    hashXdr: String
+    expiration: Int
+}
