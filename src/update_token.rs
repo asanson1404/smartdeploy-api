@@ -56,7 +56,7 @@ pub async fn renew_jwt_cron_job(state: Arc<AppState>) {
                                 .unwrap()
                                 .jwt_token
                                 .unwrap();
-                            let mut file = File::create("./mercury-access-token").unwrap();
+                            let mut file = File::create("./mercury-access-token.txt").unwrap();
                             file.write_all(new_token.as_bytes()).unwrap();
                             *state.mercury_jwt_token.lock().unwrap() = new_token;
                             time_to_sleep = Duration::from_secs(59 * 60 * 24 * 7); // ~7 days

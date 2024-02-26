@@ -1,4 +1,4 @@
 /target
 .shuttle-storage
 Secrets*.toml
-mercury-access-token
+mercury-access-token.txt
