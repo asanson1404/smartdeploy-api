@@ -1,6 +1,5 @@
 use axum::response::{IntoResponse, Response};
 
-//#[derive(thiserror::Error, Debug)]
 pub enum MyError {
     ReqwestError(reqwest::Error),
     BadResponseStatus,
@@ -12,6 +11,23 @@ pub enum MyError {
     FromXdrError(stellar_xdr::curr::Error),
     ToXdrError(stellar_xdr::curr::Error),
     ExtendError(soroban_cli::commands::contract::extend::Error),
+    ConfigNetworkError(soroban_cli::commands::config::Error),
+    KeyError(soroban_cli::key::Error),
+    RpcError(soroban_cli::rpc::Error),
+}
+
+// Convert soroban_cli::rpc::Error towards MyError::RpcError
+impl From<soroban_cli::rpc::Error> for MyError {
+    fn from(error: soroban_cli::rpc::Error) -> Self {
+        MyError::RpcError(error)
+    }
+}
+
+// Convert soroban_cli::key::Error towards MyError::KeyError
+impl From<soroban_cli::key::Error> for MyError {
+    fn from(error: soroban_cli::key::Error) -> Self {
+        MyError::KeyError(error)
+    }
 }
 
 // Convert soroban_cli::commands::contract::extend::Error towards MyError::ExtendError
@@ -42,6 +58,9 @@ impl IntoResponse for MyError {
             MyError::FromXdrError(conversion_error) => format!("Failed to convert xdr value: {}", conversion_error),
             MyError::ToXdrError(conversion_error) => format!("Failed to create xdr value : {}", conversion_error),
             MyError::ExtendError(extend_error) => format!("Failed to extend contract: {}", extend_error),
+            MyError::ConfigNetworkError(config_error) => format!("Failed to get network config when using Soroban CLI: {}", config_error),
+            MyError::KeyError(key_error) => format!("Failed to parse ledger key when using soroban CLI: {}", key_error),
+            MyError::RpcError(rpc_error) => format!("Failed to communicate with RPC: {}", rpc_error),
         };
 
         body.into_response()

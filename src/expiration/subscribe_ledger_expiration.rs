@@ -18,6 +18,7 @@ use stellar_xdr::{
 };
 use sha2::{Sha256, Digest};
 use serde_json::json;
+use super::read_ledger::read_ledger_ttl;
 
 // Axum Handler for subscribing to contract expiration
 pub async fn subscribe_contract_expiration(
@@ -66,12 +67,16 @@ pub async fn subscribe_contract_expiration(
 
     if res.status().is_success() {
 
+        let (current_ledger, ledger_ttl) = read_ledger_ttl(id.clone(), state.source_account.clone()).await?;
+
         tracing::debug!("SUCCESSFULLY SUBSCRIBE TO CONTRACT EXPIRATION TRACKING: {}", id);
         
         let ret_val = json!({
             "status": "CONTRACT_INSTANCE_SUBSCRIBED",
             "contract_id": id,
-            "hash_xdr": hash_xdr
+            "hash_xdr": hash_xdr,
+            "current_ledger": current_ledger,
+            "ledger_ttl": ledger_ttl
         });
 
         return Ok(Json(ret_val));
