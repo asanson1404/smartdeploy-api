@@ -8,6 +8,7 @@ use events::get_publish::get_publish_events;
 use events::get_deploy::get_deploy_events;
 use expiration::subscribe_ledger_expiration::subscribe_contract_expiration;
 use expiration::query_ledger_expiration::get_contract_instance_expiration;
+use expiration::read_ledger::read_ledger_ttl_handler;
 
 mod events {
     pub mod get_deploy;
@@ -15,7 +16,7 @@ mod events {
 }
 mod expiration {
     mod extend_ttl;
-    mod read_ledger;
+    pub mod read_ledger;
     pub mod subscribe_ledger_expiration;
     pub mod query_ledger_expiration;
 }
@@ -75,7 +76,8 @@ async fn main(
         .route("/get_publish", get(get_publish_events)).layer(cors.clone())
         .route("/get_deploy", get(get_deploy_events)).layer(cors.clone())
         .route("/subscribe_contract_expiration/:id", get(subscribe_contract_expiration)).layer(cors.clone())
-        .route("/query_ledger_expiration/:encoded_hash_xdr", get(get_contract_instance_expiration)).layer(cors)
+        .route("/query_ledger_expiration/:encoded_hash_xdr", get(get_contract_instance_expiration)).layer(cors.clone())
+        .route("/read_ledger_ttl/:id", get(read_ledger_ttl_handler)).layer(cors)
         .with_state(state);
 
     Ok(router.into())
