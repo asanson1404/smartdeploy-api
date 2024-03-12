@@ -67,7 +67,12 @@ pub async fn subscribe_contract_expiration(
 
     if res.status().is_success() {
 
-        let (current_ledger, ledger_ttl) = read_ledger_ttl(id.clone(), state.source_account.clone()).await?;
+        let (current_ledger, ledger_ttl) = read_ledger_ttl(
+            id.clone(),
+            state.rpc_url.clone(),
+            state.network_passphrase.clone(),
+            state.source_account.clone()
+        ).await?;
 
         tracing::debug!("SUCCESSFULLY SUBSCRIBE TO CONTRACT EXPIRATION TRACKING: {}", id);
         

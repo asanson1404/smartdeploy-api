@@ -4,12 +4,18 @@ use soroban_cli::commands::network;
 use soroban_cli::commands::{contract::extend, config};
 use soroban_cli::{fee, key};
 
-pub async fn bump_contract_instance(contract_id: String, ledgers_to_extend: u32, source_account: String,) -> Result<(), MyError> {
+pub async fn bump_contract_instance(
+    contract_id: String,
+    ledgers_to_extend: u32,
+    rpc_url: String,
+    network_passphrase: String,
+    source_account: String,
+) -> Result<(), MyError> {
 
     let network = network::Args {
-        rpc_url: None,
-        network_passphrase: None,
-        network: Some("testnet".to_owned()),
+        rpc_url: Some(rpc_url),
+        network_passphrase: Some(network_passphrase),
+        network: None,
     };
 
     extend::Cmd {

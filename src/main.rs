@@ -30,6 +30,8 @@ struct AppState {
     mercury_graphql_endpoint: String,
     mercury_id: String,
     mercury_pwd: String,
+    rpc_url: String,
+    network_passphrase: String,
     source_account: String,
 }
 
@@ -51,6 +53,12 @@ async fn main(
     let Some(mercury_pwd) = secret_store.get("MERCURY_PASSWORD") else {
         return Err(anyhow!("MERCURY_PASSWORD not set in Secrets.toml file").into());
     };
+    let Some(rpc_url) = secret_store.get("RPC_URL") else {
+        return Err(anyhow!("RPC_URL not set in Secrets.toml file").into());
+    };
+    let Some(network_passphrase) = secret_store.get("NETWORK_PASSPHRASE") else {
+        return Err(anyhow!("NETWORK_PASSPHRASE not set in Secrets.toml file").into());
+    };
     let Some(source_account) = secret_store.get("SOURCE_ACCOUNT") else {
         return Err(anyhow!("SOURCE_ACCOUNT not set in Secrets.toml file").into());
     };
@@ -62,6 +70,8 @@ async fn main(
         mercury_graphql_endpoint,
         mercury_id,
         mercury_pwd,
+        rpc_url,
+        network_passphrase,
         source_account,
     });
 

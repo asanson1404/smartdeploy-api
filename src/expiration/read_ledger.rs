@@ -11,13 +11,18 @@ use soroban_cli::commands::{
 use soroban_cli::key;
 use soroban_cli::rpc::Client;
 
-pub async fn read_ledger_ttl(contract_id: String, source_account: String,) -> Result<(i64, u32), MyError> {
+pub async fn read_ledger_ttl(
+    contract_id: String,
+    rpc_url: String,
+    network_passphrase: String,
+    source_account: String,
+) -> Result<(i64, u32), MyError> {
 
     let config = config::Args {
         network: network::Args {
-            rpc_url: None,
-            network_passphrase: None,
-            network: Some("testnet".to_owned()),
+            rpc_url: Some(rpc_url),
+            network_passphrase: Some(network_passphrase),
+            network: None,
         },
         source_account,
         ..Default::default()
@@ -54,9 +59,9 @@ pub async fn read_ledger_ttl_handler(
 
     let config = config::Args {
         network: network::Args {
-            rpc_url: None,
-            network_passphrase: None,
-            network: Some("testnet".to_owned()),
+            rpc_url: Some(state.rpc_url.clone()),
+            network_passphrase: Some(state.network_passphrase.clone()),
+            network: None,
         },
         source_account: state.source_account.clone(),
         ..Default::default()
