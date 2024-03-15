@@ -9,9 +9,9 @@ axum = { version = "0.7.4", features = ["macros"]}
 graphql_client = "0.13.0"
 reqwest = { version = "0.11.24", features = ["json", "blocking"]}
 serde = "1.0.192"
-shuttle-axum = "0.39.0"
-shuttle-runtime = "0.39.0"
-shuttle-secrets = "0.39.0"
+shuttle-axum = "0.41.0"
+shuttle-runtime = "0.41.0"
+shuttle-secrets = "0.41.0"
 tokio = "1.28.2"
 tracing = "0.1.40"
 stellar-xdr = { version = "20.0.0", features = ["curr", "std", "serde", "base64"] }
