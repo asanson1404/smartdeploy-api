@@ -1,8 +1,9 @@
-use axum::routing::{Router, get};
+use axum::routing::{Router, get, post};
+use sqlx::PgPool;
 use anyhow::anyhow;
 use shuttle_secrets::SecretStore;
 use tower_http::cors::CorsLayer;
-use http::{Method, HeaderValue};
+use http::{Method, HeaderName, HeaderValue};
 use std::sync::{Arc, Mutex};
 use events::{
     get_publish::get_publish_events,
@@ -14,6 +15,7 @@ use expiration::{
     read_ledger::read_ledger_ttl_handler,
     extend_ttl::bump_contract_instance,
 };
+use postgres::db_communication::{retrieve, add};
 
 mod events {
     pub mod get_deploy;
@@ -24,6 +26,9 @@ mod expiration {
     pub mod read_ledger;
     pub mod subscribe_ledger_expiration;
     pub mod query_ledger_expiration;
+}
+mod postgres {
+    pub mod db_communication; 
 }
 mod error;
 mod update_token;
@@ -38,12 +43,21 @@ struct AppState {
     rpc_url: String,
     network_passphrase: String,
     source_account: String,
+    ttl_pool: PgPool,
 }
 
 #[shuttle_runtime::main]
 async fn main(
     #[shuttle_secrets::Secrets] secret_store: SecretStore,
+    #[shuttle_shared_db::Postgres] ttl_pool: PgPool
 ) -> shuttle_axum::ShuttleAxum {
+
+    /*
+        POSTGRES_URL = postgres://postgres:postgres@localhost:19463/smartdeploy-api
+        Migrate the database: sqlx migrate run --database-url $POSTGRES_URL
+        Display migration information: sqlx migrate info --database-url $POSTGRES_URL
+        Reset the database: sqlx database reset --database-url $POSTGRES_URL
+     */
 
     // Retrieve the secret variables
     let Some(mercury_backend_endpoint) = secret_store.get("MERCURY_BACKEND_ENDPOINT") else {
@@ -78,11 +92,13 @@ async fn main(
         rpc_url,
         network_passphrase,
         source_account,
+        ttl_pool,
     });
 
     let cors = CorsLayer::new()
-        .allow_methods([Method::GET])
-        .allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap());
+        .allow_methods([Method::GET, Method::POST])
+        .allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap())
+        .allow_headers([HeaderName::from_static("content-type")]);
 
     update_token::renew_jwt_cron_job(state.clone()).await;
 
@@ -93,7 +109,9 @@ async fn main(
         .route("/subscribe_contract_expiration/:id", get(subscribe_contract_expiration)).layer(cors.clone())
         .route("/query_ledger_expiration/:encoded_hash_xdr", get(get_contract_instance_expiration)).layer(cors.clone())
         .route("/read_ledger_ttl/:id", get(read_ledger_ttl_handler)).layer(cors.clone())
-        .route("/bump_contract_instance/:id/:ledgers_to_extend", get(bump_contract_instance)).layer(cors)
+        .route("/bump_contract_instance/:id/:ledgers_to_extend", get(bump_contract_instance)).layer(cors.clone())
+        .route("/contracts_ttl", post(add)).layer(cors.clone())
+        .route("/contracts_ttl", get(retrieve)).layer(cors)
         .with_state(state);
 
     Ok(router.into())

@@ -14,6 +14,7 @@ pub enum MyError {
     ConfigNetworkError(soroban_cli::commands::config::Error),
     KeyError(soroban_cli::key::Error),
     RpcError(soroban_cli::rpc::Error),
+    SqlxError(sqlx::Error),
 }
 
 // Convert soroban_cli::rpc::Error towards MyError::RpcError
@@ -44,6 +45,13 @@ impl From<reqwest::Error> for MyError {
     }
 }
 
+// Convert sqlx::Error towards MyError::SqlxError
+impl From<sqlx::Error> for MyError {
+    fn from(error: sqlx::Error) -> Self {
+        MyError::SqlxError(error)
+    }
+}
+
 // Integrate Error into axum response to use it as a return type in axum handlers 
 impl IntoResponse for MyError {
     fn into_response(self) -> Response {
@@ -61,6 +69,7 @@ impl IntoResponse for MyError {
             MyError::ConfigNetworkError(config_error) => format!("Failed to get network config when using Soroban CLI: {}", config_error),
             MyError::KeyError(key_error) => format!("Failed to parse ledger key when using soroban CLI: {}", key_error),
             MyError::RpcError(rpc_error) => format!("Failed to communicate with RPC: {}", rpc_error),
+            MyError::SqlxError(sqlx_error) => format!("Failed to communicate with postgres database: {}", sqlx_error),
         };
 
         body.into_response()
