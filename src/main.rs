@@ -8,6 +8,7 @@ use std::sync::{Arc, Mutex};
 use events::{
     get_publish::get_publish_events,
     get_deploy::get_deploy_events,
+    get_claim::get_claim_events,
 };
 use expiration::{
     subscribe_ledger_expiration::subscribe_contract_expiration,
@@ -20,6 +21,7 @@ use postgres::db_communication::{retrieve, add};
 mod events {
     pub mod get_deploy;
     pub mod get_publish;
+    pub mod get_claim;
 }
 mod expiration {
     pub mod extend_ttl;
@@ -106,6 +108,7 @@ async fn main(
     let router = Router::new()
         .route("/get_publish", get(get_publish_events)).layer(cors.clone())
         .route("/get_deploy", get(get_deploy_events)).layer(cors.clone())
+        .route("/get_claim", get(get_claim_events)).layer(cors.clone())
         .route("/subscribe_contract_expiration/:id", get(subscribe_contract_expiration)).layer(cors.clone())
         .route("/query_ledger_expiration/:encoded_hash_xdr", get(get_contract_instance_expiration)).layer(cors.clone())
         .route("/read_ledger_ttl/:id", get(read_ledger_ttl_handler)).layer(cors.clone())

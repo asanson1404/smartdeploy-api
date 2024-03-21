@@ -15,6 +15,8 @@ pub enum MyError {
     KeyError(soroban_cli::key::Error),
     RpcError(soroban_cli::rpc::Error),
     SqlxError(sqlx::Error),
+    InvalidClaimEventData,
+    HashRetrievalFailed,
 }
 
 // Convert soroban_cli::rpc::Error towards MyError::RpcError
@@ -70,6 +72,8 @@ impl IntoResponse for MyError {
             MyError::KeyError(key_error) => format!("Failed to parse ledger key when using soroban CLI: {}", key_error),
             MyError::RpcError(rpc_error) => format!("Failed to communicate with RPC: {}", rpc_error),
             MyError::SqlxError(sqlx_error) => format!("Failed to communicate with postgres database: {}", sqlx_error),
+            MyError::InvalidClaimEventData => "Invalid claim event data: contract_id not found".to_string(),
+            MyError::HashRetrievalFailed => "Hash retrieval failed: the hash of the claim contract can't be found".to_string(),
         };
 
         body.into_response()
