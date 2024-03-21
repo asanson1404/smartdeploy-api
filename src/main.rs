@@ -46,6 +46,7 @@ struct AppState {
     network_passphrase: String,
     source_account: String,
     ttl_pool: PgPool,
+    front_end_url: String,
 }
 
 #[shuttle_runtime::main]
@@ -83,6 +84,9 @@ async fn main(
     let Some(source_account) = secret_store.get("SOURCE_ACCOUNT") else {
         return Err(anyhow!("SOURCE_ACCOUNT not set in Secrets.toml file").into());
     };
+    let Some(front_end_url) = secret_store.get("FRONT_END_URL") else {
+        return Err(anyhow!("FRONT_END_URL not set in Secrets.toml file").into());
+    };
 
     // Create the AppState
     let state = Arc::new(AppState {
@@ -95,11 +99,12 @@ async fn main(
         network_passphrase,
         source_account,
         ttl_pool,
+        front_end_url,
     });
 
     let cors = CorsLayer::new()
         .allow_methods([Method::GET, Method::POST])
-        .allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap())
+        .allow_origin(state.front_end_url.parse::<HeaderValue>().unwrap())
         .allow_headers([HeaderName::from_static("content-type")]);
 
     update_token::renew_jwt_cron_job(state.clone()).await;
